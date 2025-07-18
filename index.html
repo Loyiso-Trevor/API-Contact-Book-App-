@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Book</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="fetchContacts()">
+  <div class="container">
+    <h1>Contact Book</h1>
+    <div class="actions">
+      <button class="btn" id="refresh">🔁 Refresh</button>
+      <button class="btn" id="addContact">➕ Add Contact</button>
+    </div>
+    <div id="table">Loading contacts...</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    document.getElementById('refresh').addEventListener('click', fetchContacts);
+    document.getElementById('addContact').addEventListener('click', () => {
+      window.open('add-contact.html', '_self');
+    });
+
+    function fetchContacts() {
+      fetch(rootpath + 'controller/get-contacts?apiKey=' + apiKey)
+        .then(response => response.json())
+        .then(data => displayOutput(data))
+        .catch(err => {
+          console.error("Fetch error:", err);
+          document.getElementById('table').innerHTML = "⚠️ Failed to fetch contacts.";
+        });
+    }
+
+    function displayOutput(data) {
+      if (!data.length) {
+        document.getElementById('table').innerHTML = "📭 No contacts found.";
+        return;
+      }
+
+      let output = "<table>";
+      for (let contact of data) {
+        output += `
+          <tr>
+            <td>
+              <div class="contact-row">
+                <div class="contact-info">
+                  <img src="${rootpath}controller/uploads/${contact.avatar}" width="50" height="50" />
+                  <div>
+                    <strong>${contact.firstname}</strong><br/>
+                    <small>${contact.lastname}</small>
+                  </div>
+                </div>
+                <div class="contact-buttons">
+                  <button class="btn" onclick="editContact(${contact.id})">✏️ Edit</button>
+                  <button class="btn" onclick="deleteContact(${contact.id})">🗑️ Delete</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+      output += "</table>";
+      document.getElementById('table').innerHTML = output;
+    }
+
+    function editContact(id) {
+      window.open('edit-contact.html?id=' + id, '_self');
+    }
+
+    function deleteContact(id) {
+      if (!confirm("Are you sure you want to delete this contact?")) return;
+
+      fetch(rootpath + `controller/delete-contact?id=${id}&apiKey=${apiKey}`)
+        .then(res => res.text())
+        .then(data => {
+          if (data === "1") {
+            alert("Contact deleted!");
+            fetchContacts();
+          } else {
+            alert("Delete failed: " + data);
+          }
+        })
+        .catch(err => alert("Delete failed: " + err.message));
+    }
+  </script>
+</body>
+</html>

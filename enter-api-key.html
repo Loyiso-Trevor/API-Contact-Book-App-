@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enter API Key</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ff8800, #993333);
+      color: white;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .form-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      width: 300px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+      text-align: center;
+      color: #ffe0bd;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background-color: #ffcc00;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff9900;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Enter API Key</h2>
+    <form>
+      <input type="email" id="apiKey" placeholder="Enter your API Key" required />
+      <button type="button" id="submitApiKey">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    let rootpath = "https://mysite.itvarsity.org/api/ContactBook/";
+
+    document.getElementById("submitApiKey").addEventListener("click", function () {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if (!apiKey) {
+        alert("Please enter a valid API key.");
+        return;
+      }
+
+      fetch(rootpath + "controller/set-api-key?apiKey=" + apiKey)
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "1") {
+            localStorage.setItem("apiKey", apiKey);
+            window.location.href = "index.html";
+          } else {
+            alert("Invalid API Key or connection issue.");
+          }
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          alert("Failed to connect to the API.");
+        });
+    });
+  </script>
+</body>
+</html>

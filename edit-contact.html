@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Contact</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ff7a18, #af002d);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      width: 300px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ffe0bd;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff512f;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    button:hover {
+      background-color: #dd2c00;
+    }
+    #backBtn {
+      background-color: #ffcc00;
+      color: #000;
+    }
+    #avatarPreview {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #avatarPreview img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Edit Contact</h2>
+
+    <div id="avatarPreview"></div>
+
+    <form id="editForm">
+      <label for="firstname">First name:</label>
+      <input type="text" id="firstname" required />
+
+      <label for="lastname">Last name:</label>
+      <input type="text" id="lastname" required />
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" required />
+
+      <label for="mobile">Phone:</label>
+      <input type="text" id="mobile" required />
+
+      <label for="avatar">Change Avatar:</label>
+      <input type="file" id="avatar" accept="image/*" />
+
+      <button type="submit">Save Changes</button>
+    </form>
+
+    <button id="deleteBtn">Delete</button>
+    <button id="backBtn">Back Home</button>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const id = new URLSearchParams(window.location.search).get("id");
+
+    // Preload contact info
+    fetch(rootpath + "controller/get-contact?id=" + id)
+      .then((res) => res.json())
+      .then((data) => {
+        const contact = data[0];
+        document.getElementById("firstname").value = contact.firstname;
+        document.getElementById("lastname").value = contact.lastname;
+        document.getElementById("email").value = contact.email;
+        document.getElementById("mobile").value = contact.mobile;
+
+        if (contact.avatar) {
+          document.getElementById("avatarPreview").innerHTML =
+            `<img src="${rootpath}controller/uploads/${contact.avatar}" alt="Avatar">`;
+        }
+      });
+
+    // Update contact
+    document.getElementById("editForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const form = new FormData();
+      form.append("firstname", document.getElementById("firstname").value);
+      form.append("lastname", document.getElementById("lastname").value);
+      form.append("email", document.getElementById("email").value);
+      form.append("mobile", document.getElementById("mobile").value);
+      form.append("apiKey", apiKey);
+      form.append("id", id);
+
+      const avatar = document.getElementById("avatar").files[0];
+      if (avatar) {
+        form.append("avatar", avatar);
+      }
+
+      fetch(rootpath + "controller/update-contact/", {
+        method: "POST",
+        headers: {
+          Accept: "application/json,*.*"
+        },
+        body: form,
+      })
+        .then((res) => res.text())
+        .then((data) => {
+          if (data === "1") {
+            alert("Contact updated successfully!");
+            window.location.href = "index.html";
+          } else {
+            alert("Update failed: " + data);
+          }
+        });
+    });
+
+    // Delete contact
+    document.getElementById("deleteBtn").addEventListener("click", function () {
+      if (!confirm("Are you sure you want to delete this contact?")) return;
+
+      fetch(rootpath + "controller/delete-contact?id=" + id + "&apiKey=" + apiKey)
+        .then((res) => res.text())
+        .then((data) => {
+          if (data === "1") {
+            alert("Contact deleted.");
+            window.location.href = "index.html";
+          } else {
+            alert("Delete failed: " + data);
+          }
+        });
+    });
+
+    // Back button
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
